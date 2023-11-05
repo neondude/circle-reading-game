@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concentric Circles Text</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&family=Signika+Negative:wght@700&display=swap"
+        rel="stylesheet">
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            padding: 10px;
+            /* Add some padding to ensure content is within the viewport */
+            box-sizing: border-box;
+            /* Ensures padding is included in total width and height */
+            display: flex;
+            flex-direction: column;
+            /* Stack elements vertically */
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+            font-family: 'Roboto', sans-serif;
+            font-family: 'Signika Negative', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .circle-container {
+            position: relative;
+            width: 100vmin;
+            height: 100vmin;
+            margin: 0px 0;
+            transition: transform 0.6s ease;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Large screens */
+        @media (min-width: 1200px) {
+            .circle-container {
+                width: 80vmin;
+                height: 80vmin;
+            }
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 0px;
+            /* Add some margin around the buttons */
+            font-size: 1em;
+            cursor: pointer;
+            align-self: center;
+            border: 5px solid #000;
+            border-radius: 5px;
+            text-transform: uppercase;
+            background-color: none;
+            font-weight: bold;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        @keyframes myAnimation {
+            0% {
+                transform: scale(0);
+            }
+
+            70% {
+                transform: scale(1.5);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes showWordsAnimation {
+            0% {
+                transform: scale(0);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        #dice-color {
+            padding: 20px;
+            border-radius: 50%;
+            margin: 10px;
+            margin-top: 0px;
+            border: 5px solid #000;
+            background-color: none;
+            transition: transform 0.6s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <button id="button-solution">View Solution</button>
+    <div class="circle-container" id="words-container">
+        <svg id="circle-svg" viewBox="0 0 100 100">
+            <!-- Circle paths -->
+            <path id="circle-path-outer" d="M50,8 a42,42 0 1,0 0,84 a42,42 0 1,0 0,-84" fill="#2B2B37" />
+            <path id="circle-path-outer" d="M50,10 a40,40 0 1,0 0,80 a40,40 0 1,0 0,-80" fill="#F0367D" />
+            <path id="circle-path-middle" d="M50,20 a30,30 0 1,0 0,60 a30,30 0 1,0 0,-60" fill="#FFE800" />
+            <path id="circle-path-inner" d="M50,30 a20,20 0 1,0 0,40 a20,20 0 1,0 0,-40" fill="#A8D614" />
+            <path id="circle-path-inner" d="M50,40 a10,10 0 1,0 0,20 a10,10 0 1,0 0,-20" fill="#2B2B37" />
+
+            <!-- Text elements -->
+            <text font-size="8" textlength="240">
+                <textPath xlink:href="#circle-path-outer" startOffset="50%" text-anchor="middle"
+                    dominant-baseline="top">
+                    <tspan id="circle-text-outer" dy="-3"></tspan>
+                </textPath>
+            </text>
+            <text font-size="8" textlength="165">
+                <textPath xlink:href="#circle-path-middle" startOffset="50%" text-anchor="middle"
+                    dominant-baseline="top">
+                    <tspan id="circle-text-middle" dy="-2"></tspan>
+                </textPath>
+            </text>
+            <text font-size="8" textlength="110">
+                <textPath xlink:href="#circle-path-inner" startOffset="50%" text-anchor="middle"
+                    dominant-baseline="top">
+                    <tspan id="circle-text-inner" dy="-2"></tspan>
+                </textPath>
+            </text>
+        </svg>
+    </div>
+    <div class="container">
+        <!-- <button id="button-bottom">Bottom Button</button> -->
+        <button id="button-roll-dice" style="margin-left:10px">Roll Dice</button>
+        <button id="dice-color" disabled></button>
+        <button id="button-new-circle" class="">New Circle</button>
+
+    </div>
+
+    <script>
+        let data;
+        // This function runs immediately and fetches the JSON file
+        function loadJSON(callback) {
+            var xobj = new XMLHttpRequest();
+            xobj.overrideMimeType("application/json");
+            xobj.open('GET', 'words.json', true); // Replace 'your_file.json' with the path to your JSON file
+            xobj.onreadystatechange = function () {
+                if (xobj.readyState == 4 && xobj.status == "200") {
+                    // Required use of an anonymous callback 
+                    // as .open() will NOT return a value but simply returns undefined in asynchronous mode
+                    callback(xobj.responseText);
+                }
+            };
+            xobj.send(null);
+        }
+
+        // This function will be called after the JSON has loaded
+        function init(jsonData) {
+            // Your code dependent on JSON data goes here
+            data = jsonData;
+            console.log("data init complete"); // Do something with your JSON
+        }
+        function randomlyRotateString(str) {
+            // Convert the string to an array of characters
+            let chars = str.split('');
+
+            // Randomly rotate the characters
+            const rotations = Math.floor(Math.random() * chars.length);
+            chars = chars.slice(rotations).concat(chars.slice(0, rotations));
+
+            // Join the rotated characters back into a string
+            let rotatedStr = chars.join('');
+
+            return rotatedStr;
+        }
+
+        function getRandomLenString(lenPrfix) {
+            let index = Math.floor(Math.random() * data[lenPrfix + 'len'].length);
+            console.log(lenPrfix + 'len', data[lenPrfix + 'len'][index]);
+            return data[lenPrfix + 'len'][index];
+        }
+        // Utility function to set the word in each circle
+        function setCircleText(outer, middle, inner) {
+            //apply random shift to each word
+            outer = randomlyRotateString(outer);
+            middle = randomlyRotateString(middle);
+            inner = randomlyRotateString(inner);
+
+            document.getElementById('circle-text-outer').textContent = "";
+            document.getElementById('circle-text-middle').textContent = "";
+            document.getElementById('circle-text-inner').textContent = "";
+
+            document.getElementById('words-container').style.animation = "showWordsAnimation 0.6s";
+            setTimeout(function () {
+                document.getElementById('words-container').style.animation = "";
+                document.getElementById('circle-text-outer').textContent = outer;
+                document.getElementById('circle-text-middle').textContent = middle;
+                document.getElementById('circle-text-inner').textContent = inner;
+            }, 600);
+
+        }
+
+        function rollDice() {
+            const colors = ["#F0367D", "#FFE800", "#A8D614"];
+            document.getElementById('dice-color').style.backgroundColor = "#2B2B37";
+            document.getElementById('dice-color').style.animation = "myAnimation 0.6s";
+            setTimeout(function () { 
+                document.getElementById('dice-color').style.animation = "";
+                document.getElementById('dice-color').style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            }, 600);
+        }
+
+
+
+        // Example usage
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadJSON(function (response) {
+                // Parsing JSON string into object
+                var actual_JSON = JSON.parse(response);
+                init(actual_JSON);
+                rollDice();
+                setCircleText();
+            });
+        });
+
+        document.getElementById('button-roll-dice').onclick = function () {
+            rollDice();
+        };
+
+        document.getElementById('button-solution').onclick = function () {
+            alert(document.getElementById('button-solution').getAttribute("data-solution"));
+        };
+
+        document.getElementById('button-new-circle').onclick = function () {
+            const outer = getRandomLenString("8");
+            const middle = getRandomLenString("7");
+            const inner = getRandomLenString("6");
+
+            setCircleText(outer, middle, inner);
+            document.getElementById('button-solution').setAttribute("data-solution", outer + "\n" + middle + "\n" + inner);
+        };
+
+    </script>
+
+</body>
+
+</html>
